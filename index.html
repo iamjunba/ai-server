@@ -49,14 +49,9 @@ async function generateWeapon(desc) {
 
   const data = await res.json();
 
-  // 이미지 표시
-  if (data.image) {
-    document.getElementById("weaponImg").src = data.image;
-  }
-
   return data.weapon;
 }
-
+  
 // 🚀 게임 시작
 async function startGame() {
   log.innerHTML = "";
