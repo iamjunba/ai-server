@@ -2,8 +2,7 @@ export default async function handler(req, res) {
   try {
     const { desc } = req.body;
 
-    // 1️⃣ 무기 데이터 생성
-    const textRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -15,7 +14,7 @@ export default async function handler(req, res) {
           {
             role: "system",
             content:
-              "무기를 JSON으로만 생성해라: {\"name\":\"\",\"damage\":0,\"speed\":0,\"effect\":\"\"}"
+              "반드시 JSON만 출력: {\"name\":\"\",\"damage\":0,\"speed\":0,\"effect\":\"fire\"}"
           },
           {
             role: "user",
@@ -25,42 +24,38 @@ export default async function handler(req, res) {
       })
     });
 
-    const textData = await textRes.json();
-    const match = textData.choices[0].message.content.match(/\{[\s\S]*\}/);
+    const data = await response.json();
+
+    // 🔥 안전하게 꺼내기
+    const text = data?.choices?.[0]?.message?.content || "";
+
+    // 🔥 JSON 추출
+    const match = text.match(/\{[\s\S]*\}/);
+
+    if (!match) throw new Error("JSON 없음");
+
     const weapon = JSON.parse(match[0]);
 
-    // 2️⃣ 이미지 생성
-    const imgRes = await fetch("https://api.openai.com/v1/images/generations", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + process.env.API_KEY
-      },
-      body: JSON.stringify({
-        model: "gpt-image-1",
-        prompt: `${weapon.name}, fantasy weapon, glowing, high detail, game art`,
-        size: "512x512"
-      })
-    });
-
-    const imgData = await imgRes.json();
-    const imageUrl = imgData.data[0].url;
-
-    // 3️⃣ 같이 반환
-    res.json({
-      weapon,
-      image: imageUrl
+    // 🔥 기본값 보정
+    return res.json({
+      weapon: {
+        name: weapon.name || desc,
+        damage: weapon.damage || 60,
+        speed: weapon.speed || 40,
+        effect: weapon.effect || "fire"
+      }
     });
 
   } catch (e) {
-    res.json({
+    console.log("에러:", e);
+
+    return res.json({
       weapon: {
-        name: "기본 무기",
-        damage: 50,
-        speed: 50,
-        effect: "none"
-      },
-      image: ""
+        name: desc,
+        damage: 60,
+        speed: 40,
+        effect: "fire"
+      }
     });
   }
 }
