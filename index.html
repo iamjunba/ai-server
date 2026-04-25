@@ -50,16 +50,22 @@ async function generateWeapon(desc) {
   const data = await res.json();
 
   try {
-    return JSON.parse(data.result);
+    // 🔥 JSON만 추출
+    const match = data.result.match(/\{[\s\S]*\}/);
+    if (match) {
+      return JSON.parse(match[0]);
+    }
   } catch (e) {
     console.log("파싱 실패:", data.result);
-    return {
-      name: desc || "기본 무기",
-      damage: 50,
-      speed: 50,
-      effect: "none"
-    };
   }
+
+  // fallback
+  return {
+    name: desc,
+    damage: 50,
+    speed: 50,
+    effect: "none"
+  };
 }
 
 // 🚀 게임 시작
