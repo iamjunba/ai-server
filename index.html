@@ -39,17 +39,26 @@ function addLog(text) {
 }
 
 async function generateWeapon(desc) {
-  const res = await fetch("/api/ai", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ desc })
-  });
+  try {
+    const res = await fetch("/api/ai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ desc })
+    });
 
-  const data = await res.json();
+    console.log("응답 상태:", res.status);
 
-  return data.weapon;
+    const data = await res.json();
+    console.log("데이터:", data);
+
+    return data.weapon;
+
+  } catch (e) {
+    console.error("에러:", e);
+    alert("서버 연결 실패");
+  }
 }
   
 // 🚀 게임 시작
