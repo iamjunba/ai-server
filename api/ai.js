@@ -2,7 +2,8 @@ export default async function handler(req, res) {
   try {
     const { desc } = req.body;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    // 1️⃣ 무기 데이터 생성
+    const textRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -14,7 +15,7 @@ export default async function handler(req, res) {
           {
             role: "system",
             content:
-              "무기를 JSON으로만 생성해라. 다른 말 금지. 반드시 이 형식만: {\"name\":\"검\",\"damage\":70,\"speed\":30,\"effect\":\"fire\"}"
+              "무기를 JSON으로만 생성해라: {\"name\":\"\",\"damage\":0,\"speed\":0,\"effect\":\"\"}"
           },
           {
             role: "user",
@@ -24,26 +25,42 @@ export default async function handler(req, res) {
       })
     });
 
-    const data = await response.json();
-    let text = data.choices?.[0]?.message?.content || "";
+    const textData = await textRes.json();
+    const match = textData.choices[0].message.content.match(/\{[\s\S]*\}/);
+    const weapon = JSON.parse(match[0]);
 
-    // 🔥 JSON만 강제 추출
-    const match = text.match(/\{[\s\S]*\}/);
+    // 2️⃣ 이미지 생성
+    const imgRes = await fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + process.env.API_KEY
+      },
+      body: JSON.stringify({
+        model: "gpt-image-1",
+        prompt: `${weapon.name}, fantasy weapon, glowing, high detail, game art`,
+        size: "512x512"
+      })
+    });
 
-    if (match) {
-      return res.json({ result: match[0] });
-    }
+    const imgData = await imgRes.json();
+    const imageUrl = imgData.data[0].url;
 
-    throw new Error("JSON 없음");
+    // 3️⃣ 같이 반환
+    res.json({
+      weapon,
+      image: imageUrl
+    });
 
   } catch (e) {
-    return res.json({
-      result: JSON.stringify({
+    res.json({
+      weapon: {
         name: "기본 무기",
-        damage: 60,
-        speed: 40,
-        effect: "fire"
-      })
+        damage: 50,
+        speed: 50,
+        effect: "none"
+      },
+      image: ""
     });
   }
 }
