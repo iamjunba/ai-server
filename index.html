@@ -38,7 +38,6 @@ function addLog(text) {
   log.scrollTop = log.scrollHeight;
 }
 
-// 🔥 Vercel API 호출 (진짜 AI)
 async function generateWeapon(desc) {
   const res = await fetch("/api/ai", {
     method: "POST",
@@ -50,17 +49,12 @@ async function generateWeapon(desc) {
 
   const data = await res.json();
 
-  try {
-    return JSON.parse(data.result);
-  } catch (e) {
-    console.log("파싱 실패:", data.result);
-    return {
-      name: desc,
-      damage: 50,
-      speed: 50,
-      effect: "none"
-    };
+  // 이미지 표시
+  if (data.image) {
+    document.getElementById("weaponImg").src = data.image;
   }
+
+  return data.weapon;
 }
 
 // 🚀 게임 시작
