@@ -13,7 +13,7 @@ export default async function handler(req, res) {
         messages: [
           {
             role: "system",
-            content: "무기를 JSON으로만 생성해라. 속성은 필요시 이름을 참고하여 fire, ice, lightning, dark, light 중 하나를 골라 사용하라. 예: {\"name\":\"검\",\"damage\":50,\"speed\":30,\"effect\":\"fire\"}"
+            content: "무기를 JSON으로만 생성해라. 설명 금지. 반드시 다음 형식만: {\"name\":\"검\",\"damage\":50,\"speed\":30,\"effect\":\"fire\"}"
           },
           {
             role: "user",
