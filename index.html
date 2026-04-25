@@ -1,0 +1,119 @@
+<!DOCTYPE html><html>
+<head>
+<meta charset="UTF-8">
+<title>AI 무기 배틀</title><style>
+body {
+  background: #111;
+  color: white;
+  font-family: sans-serif;
+  text-align: center;
+  margin: 0;
+}
+
+h1 {
+  margin-top: 20px;
+}
+
+input, button {
+  padding: 12px;
+  margin: 5px;
+  font-size: 16px;
+}
+
+#log {
+  margin: 20px;
+  height: 300px;
+  overflow-y: auto;
+  border: 1px solid #444;
+  padding: 10px;
+  text-align: left;
+}
+</style></head><body><h1>⚔️ AI 무기 배틀</h1><input id="desc" placeholder="무기 설명 입력 (예: 번개의 불타는 검)">
+<button onclick="startGame()">전투 시작</button><div id="log"></div><script>
+const log = document.getElementById("log");
+
+function addLog(text) {
+  log.innerHTML += text + "<br>";
+  log.scrollTop = log.scrollHeight;
+}
+
+// 🔥 Vercel API 호출 (진짜 AI)
+async function generateWeapon(desc) {
+  const res = await fetch("/api/ai", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ desc })
+  });
+
+  const data = await res.json();
+
+  try {
+    return JSON.parse(data.result);
+  } catch (e) {
+    console.log("파싱 실패:", data.result);
+    return {
+      name: desc || "기본 무기",
+      damage: 50,
+      speed: 50,
+      effect: "none"
+    };
+  }
+}
+
+// 🚀 게임 시작
+async function startGame() {
+  log.innerHTML = "";
+
+  const desc = document.getElementById("desc").value;
+
+  addLog("🧠 AI가 무기 생성중...");
+
+  const weapon = await generateWeapon(desc);
+
+  addLog("🗡️ 무기: " + weapon.name);
+  addLog("💥 공격력: " + weapon.damage);
+  addLog("⚡ 속도: " + weapon.speed);
+  addLog("✨ 속성: " + weapon.effect);
+  addLog("----------------");
+
+  startBattle(weapon);
+}
+
+// ⚔️ 전투 시스템
+function startBattle(weapon) {
+  let enemyHP = 100;
+
+  const attackSpeed = 2000 - weapon.speed * 10;
+
+  const interval = setInterval(() => {
+    let dmg = Math.floor(weapon.damage * Math.random());
+
+    // 🔥 속성 효과
+    if (weapon.effect === "fire") {
+      dmg += 10;
+      addLog("🔥 화염 추가 데미지!");
+    }
+
+    if (weapon.effect === "lightning") {
+      dmg += 5;
+      addLog("⚡ 번개 추가 데미지!");
+    }
+
+    if (weapon.effect === "ice") {
+      addLog("❄️ 적이 느려졌다!");
+    }
+
+    enemyHP -= dmg;
+
+    addLog("⚔️ " + dmg + " 데미지! (남은 체력: " + enemyHP + ")");
+
+    if (enemyHP <= 0) {
+      addLog("🏆 승리!");
+      clearInterval(interval);
+    }
+  }, attackSpeed);
+}
+</script></body>
+</html>
